@@ -41,9 +41,10 @@
 
 @optional
 - (CGFloat)pageTopAtIndex:(NSInteger)index;//用于设子controller的scrollview的 inset
-- (CGFloat)scrollMinHeight;//子Scroll最小可滑动的范围，对于横向切换有用
 - (UIScreenEdgePanGestureRecognizer *)screenEdgePanGestureRecognizer;//解决侧滑失效的问题
 - (BOOL)isPreLoad;//交互切换的时候 是否预加载
+
+- (BOOL)isSubPageCanScrollForIndex:(NSInteger)index;//表示这个页面是否可用
 
 
 @end

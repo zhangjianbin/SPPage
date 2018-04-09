@@ -8,6 +8,7 @@
 
 #import "SPPageContentView.h"
 #import "SPPageProtocol.h"
+#import "SPPageController.h"
 
 @interface SPPageContentView()
 
@@ -60,16 +61,11 @@
     return CGRectMake(offsetX, 0, self.frame.size.width, self.frame.size.height);
 }
 
-- (void)updateScrollViewLayoutWithSize:(CGSize)size
+- (CGPoint)calOffsetWithIndex:(NSInteger)index
 {
-    CGSize oldContentSize = self.contentSize;
-    if (size.width!= oldContentSize.width || size.height!= oldContentSize.height) {
-        self.contentSize = size;
-    }
-}
-
-- (CGPoint)calOffsetWithIndex:(NSInteger)index width:(CGFloat)width maxWidth:(CGFloat)maxWidth
-{
+    CGFloat width = self.frame.size.width;
+    CGFloat maxWidth = self.contentSize.width;
+    
     CGFloat offsetX = ((index) * width);
 
     if (offsetX < 0 ){
@@ -85,14 +81,42 @@
     return CGPointMake(offsetX, 0);
 }
 
-- (NSInteger)calcIndexWithOffset:(CGFloat)offset width:(CGFloat)width
+- (NSInteger)calcIndex
 {
+    CGFloat width = self.frame.size.width;
+    CGFloat offset = self.contentOffset.x;
     NSInteger startIndex = (NSInteger)offset/width;
     if (startIndex < 0) {
         startIndex = 0;
     }
 
     return startIndex;
+}
+
+- (void)setItem:(id<SPPageControllerDataSource>)item
+{
+    int startIndex =-1;
+    NSInteger endIndex = -1;
+    for (int i=0;i<[item numberOfControllers];i++) {
+        if ([item respondsToSelector:@selector(isSubPageCanScrollForIndex:)] && [item isSubPageCanScrollForIndex:i] && startIndex == -1) {
+            startIndex = i;
+        }
+        
+        if (startIndex >= 0) {
+            if (![item respondsToSelector:@selector(isSubPageCanScrollForIndex:)] || ![item isSubPageCanScrollForIndex:i]) {
+                endIndex = i;
+                break;
+            }
+        }
+    }
+    
+    if (startIndex>=0 && endIndex == -1) {
+        endIndex = [item numberOfControllers];
+    }
+    
+    self.contentInset = UIEdgeInsetsMake(0, -(startIndex)*self.frame.size.width, 0, 0);
+    self.contentSize = CGSizeMake((endIndex)*self.frame.size.width, self.frame.size.height);
+    
 }
 
 @end

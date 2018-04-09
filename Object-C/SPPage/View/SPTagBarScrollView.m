@@ -113,13 +113,20 @@
 
 - (void)pressTab:(UIControl *)sender
 {
+   
     NSInteger i = sender.tag;
+
+    [self.tabDelegate didPressTabForIndex:i];
 
     if  (self.index == i) {
         return;
     }
+    
+    if ([self.tabDataSource respondsToSelector:@selector(isTabCanPressForIndex:)] && ![self.tabDataSource isTabCanPressForIndex:i]) {
+        return;
+    }
+    
 
-    [self.tabDelegate didPressTabForIndex:i];
     self.index = i;
     [self reloadHighlight];
     [self scrollTagToIndex:i];
@@ -154,6 +161,10 @@
 //点击 和初始化使用
 - (void)markViewToIndex:(NSInteger)index animatied:(BOOL)animated
 {
+    if  (index >= self.tagViewsCache.count || index < 0) {
+        return;
+    }
+
     if (![self needMarkView]) {
         [self reloadHighlight];
     } else {
@@ -248,6 +259,12 @@
     if ( fromIndex <0 || self.tagViewsCache.count <= fromIndex+1) {
         return;
     }
+    
+    CGFloat fromWidth =  [self.tabDataSource markViewWidthForIndex:fromIndex];
+    CGFloat toWidth =  [self.tabDataSource markViewWidthForIndex:fromIndex+1];
+    if (fromWidth != toWidth) {
+        [self setMarkViewWidth:fromWidth + (toWidth-fromWidth)*(contentRatio-fromIndex)];
+    }
 
     SPPageTagView *curTagView = self.tagViewsCache[fromIndex];
     SPPageTagView *nextTagView = self.tagViewsCache[fromIndex+1];
@@ -265,17 +282,24 @@
     self.markView.center = CGPointMake(moveCenterX, self.markView.center.y);
 }
 
+- (void)setMarkViewWidth:(CGFloat)width
+{
+    CGRect frame = self.markView.frame;
+    self.markView.frame = CGRectMake(frame.origin.x, frame.origin.y, width, frame.size.height);
+}
+
 - (void)markViewScrollToIndex:(NSInteger)index
 {
     if (!self.markViewScroll) {
         return;
     }
 
-    if ( index <0 || self.tagViewsCache.count <= index) {
+    if  (index >= self.tagViewsCache.count || index < 0) {
         return;
     }
 
     SPPageTagView *curTagView = self.tagViewsCache[index];
+    [self setMarkViewWidth:[self.tabDataSource markViewWidthForIndex:index]];
     self.markView.center = CGPointMake(curTagView.center.x, self.markView.center.y);
 }
 
