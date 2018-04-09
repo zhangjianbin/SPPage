@@ -116,11 +116,11 @@
    
     NSInteger i = sender.tag;
 
-    [self.tabDelegate didPressTabForIndex:i];
-
     if  (self.index == i) {
         return;
     }
+    
+    [self.tabDelegate didPressTabForIndex:i];
     
     if ([self.tabDataSource respondsToSelector:@selector(isTabCanPressForIndex:)] && ![self.tabDataSource isTabCanPressForIndex:i]) {
         return;
